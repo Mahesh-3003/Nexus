@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Location Selector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        :root {
+            --neon-blue: #00fff2;   
+            --neon-purple: #b537f2;
+            --dark-bg: #0a0a0f;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            perspective: 1000px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .logo-container {
+            text-align: center;
+            margin: 2rem 0;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
+            font-weight: 900;
+            letter-spacing: 4px;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--neon-blue),
+                var(--neon-purple),
+                var(--neon-blue), 
+                transparent
+            );
+            animation: borderGlow 3s infinite;
+        }
+
+        .logo-subtitle {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-purple);
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .stat-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            right: -2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 30px;
+            background: linear-gradient(to bottom, transparent, var(--neon-blue), transparent);
+        }
+
+        .stat-item:last-child::after {
+            display: none;
+        }
+
+        .stat-number {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+        }
+
+        .stat-label {
+            display: block;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+        .background-grid {
+            position: fixed;
+            width: 400%;
+            height: 400vh;
+            background: 
+                linear-gradient(rgba(0, 255, 242, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 242, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform-origin: top;
+            transform: rotateX(60deg) translateY(-50%) translateZ(-300px);
+            animation: gridFlow 20s linear infinite;
+            z-index: -1;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            animation: particleFloat 20s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(0) translateX(0);
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+            }
+        }
+        .select-group {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .select-group label {
+            display: block;
+            margin-bottom: 1rem;
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        select {
+            width: 100%;
+            padding: 1.2rem;
+            background: rgba(0, 255, 242, 0.05);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.1);
+        }
+
+        select:hover {
+            background: rgba(0, 255, 242, 0.1);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 25px rgba(181, 55, 242, 0.3);
+            background: rgba(181, 55, 242, 0.1);
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neon-blue);
+            pointer-events: none;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .select-wrapper:hover::after {
+            color: var(--neon-purple);
+            text-shadow: 0 0 8px var(--neon-purple);
+        }
+
+        select option {
+            background: var(--dark-bg);
+            color: white;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+        .select-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border-radius: 9px;
+            background: linear-gradient(45deg, 
+                var(--neon-blue), 
+                var(--neon-purple), 
+                var(--neon-blue)
+            );
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .select-wrapper:hover::before {
+            opacity: 0.5;
+        }
+        @keyframes pulse {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        .select-wrapper:hover::after {
+            animation: pulse 2s infinite;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .options-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .option-card {
+            background: rgba(0, 255, 242, 0.05);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .option-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 
+                0 15px 30px rgba(0, 255, 242, 0.2),
+                0 0 0 1px rgba(0, 255, 242, 0.3);
+            background: rgba(0, 255, 242, 0.1);
+        }
+
+        .option-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(0, 255, 242, 0.1),
+                transparent
+            );
+            transform: translateY(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .option-card:hover::before {
+            transform: translateY(100%);
+        }
+
+        .option-card::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(
+                45deg,
+                var(--neon-blue),
+                var(--neon-purple),
+                var(--neon-blue)
+            );
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 15px;
+        }
+
+        .option-card:hover::after {
+            opacity: 0.3;
+        }
+
+        .option-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+        }
+
+        .option-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(
+                90deg,
+                var(--neon-blue),
+                var(--neon-purple)
+            );
+            transition: width 0.3s ease;
+        }
+
+        .option-card:hover .option-title::after {
+            width: 100%;
+        }
+
+        .option-description {
+            color: #a0a0a0;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .option-card:hover .option-description {
+            color: white;
+        }
+        .option-card .corner {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--neon-blue);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .option-card .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-right: 0;
+            border-bottom: 0;
+        }
+
+        .option-card .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-left: 0;
+            border-bottom: 0;
+        }
+
+        .option-card .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-right: 0;
+            border-top: 0;
+        }
+
+        .option-card .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-left: 0;
+            border-top: 0;
+        }
+
+        .option-card:hover .corner {
+            opacity: 1;
+            box-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
+        }
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem auto;
+            max-width: 1200px;
+            padding: 0 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .feature-card {
+            background: rgba(0, 255, 242, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(0, 255, 242, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: #a0a0a0;
+        }
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 255, 242, 0.05);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 25px;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(181, 55, 242, 0.2);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--dark-bg);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-result-item {
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 255, 242, 0.1);
+        }
+
+        .search-result-item:hover {
+            background: rgba(0, 255, 242, 0.1);
+        }
+
+        .search-result-item .city-name {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .search-result-item .state-name {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-left: 0.5rem;
+        }
+        .nexus-footer {
+            margin-top: 4rem;
+            padding: 3rem 2rem 1rem;
+            background: rgba(0, 255, 242, 0.05);
+            width: 100%;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section h4 {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: #a0a0a0;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--neon-purple);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 255, 242, 0.1);
+            color: #a0a0a0;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    <div class="particles"></div>
+    
+    <div class="logo-container">
+        <div class="logo">NEXUS</div>
+        <div class="logo-subtitle">LOCATION MATRIX</div>
+    </div>
+
+    <div class="header-stats">
+        <div class="stat-item">
+            <span class="stat-number">15+</span>
+            <span class="stat-label">States</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">100+</span>
+            <span class="stat-label">Cities</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Locations</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">1M+</span>
+            <span class="stat-label">Square Feet</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">50K+</span>
+            <span class="stat-label">Daily Users</span>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="feature-card">
+            <i class="feature-icon">🏢</i>
+            <h3>Premium Locations</h3>
+            <p>Strategic placement in prime business districts</p>
+        </div>
+        <div class="feature-card">
+            <i class="feature-icon">🌐</i>
+            <h3>High-Speed Network</h3>
+            <p>Enterprise-grade connectivity solutions</p>
+        </div>
+        <div class="feature-card">
+            <i class="feature-icon">🛡️</i>
+            <h3>24/7 Security</h3>
+            <p>Advanced surveillance and access control</p>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" placeholder="Search locations..." class="search-input" id="searchInput">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <div class="location-container">
+        <div class="select-group">
+            <label>SELECT STATE</label>
+            <div class="select-wrapper">
+                <select id="stateSelect">
+                    <option value="">Choose a state</option>
+                    <option value="maharashtra">Maharashtra</option>
+                    <option value="delhi">Delhi</option>
+                    <option value="karnataka">Karnataka</option>
+                    <!-- Add more states -->
+                </select>
+            </div>
+        </div>
+
+        <div class="select-group" id="cityGroup" style="display: none;">
+            <label>SELECT CITY</label>
+            <div class="select-wrapper">
+                <select id="citySelect">
+                    <option value="">Choose a city</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="options-container" id="optionsContainer"></div>
+    </div>
+
+    <footer class="nexus-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p>📧 support@nexus.com</p>
+                <p>📱 1-800-NEXUS-HQ</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="#">About Us</a>
+                <a href="#">Services</a>
+                <a href="#">Support</a>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-links">
+                    <a href="#">LinkedIn</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 NEXUS Location Matrix. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const stateSelect = document.getElementById('stateSelect');
+        const cityGroup = document.getElementById('cityGroup');
+        const citySelect = document.getElementById('citySelect');
+        const optionsContainer = document.getElementById('optionsContainer');
+
+        const cityData = {
+            maharashtra: ['Mumbai', 'Pune', 'Nagpur', 'Panvel'],
+            delhi: ['New Delhi', 'North Delhi', 'South Delhi'],
+            karnataka: ['Bangalore', 'Mysore', 'Hubli']
+        };
+
+        const locationOptions = {
+            panvel: {
+                kharghar: [
+                    {
+                        title: 'Cyber Hub Base',
+                        description: 'State-of-the-art workspace with advanced connectivity and modern amenities.'
+                    },
+                    {
+                        title: 'Digital Nexus Base',
+                        description: 'Cutting-edge facility with integrated smart systems and collaborative spaces.'
+                    }
+                ],
+                nerul: [
+                    {
+                        title: 'Tech Valley Base',
+                        description: 'Innovation hub with advanced research facilities and development centers.'
+                    },
+                    {
+                        title: 'Future Space Base',
+                        description: 'Modern workspace designed for next-generation technology companies.'
+                    }
+                ]
+            }
+        };
+
+        stateSelect.addEventListener('change', function() {
+            const selectedState = this.value;
+            cityGroup.style.display = 'none';
+            optionsContainer.innerHTML = '';
+            optionsContainer.classList.remove('visible');
+
+            if(selectedState) {
+                citySelect.innerHTML = '<option value="">Choose a city</option>';
+                cityData[selectedState].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.toLowerCase();
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+                cityGroup.style.display = 'block';
+            }
+        });
+
+        citySelect.addEventListener('change', function() {
+            const selectedCity = this.value;
+            optionsContainer.innerHTML = '';
+            
+            if(selectedCity === 'panvel') {
+                ['kharghar', 'nerul'].forEach(area => {
+                    locationOptions.panvel[area].forEach(option => {
+                        const card = document.createElement('div');
+                        card.className = 'option-card';
+                        card.style.cursor = 'pointer';
+                        card.innerHTML = `
+                            <div class="corner corner-tl"></div>
+                            <div class="corner corner-tr"></div>
+                            <div class="corner corner-bl"></div>
+                            <div class="corner corner-br"></div>
+                            <h3 class="option-title">${option.title}</h3>
+                            <p class="option-description">${option.description}</p>
+                        `;
+                        
+                        if(option.title === 'Cyber Hub Base') {
+                            card.addEventListener('click', () => {
+                                window.location.href = 'library.html';
+                            });
+                        }
+                        
+                        optionsContainer.appendChild(card);
+                    });
+                });
+                optionsContainer.classList.add('visible');
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.querySelector('.particles');
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.opacity = Math.random() * 0.5;
+                particlesContainer.appendChild(particle);
+            }
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const cityDatabase = [
+            { city: 'Mumbai', state: 'Maharashtra' },
+            { city: 'Pune', state: 'Maharashtra' },
+            { city: 'Nagpur', state: 'Maharashtra' },
+            { city: 'Panvel', state: 'Maharashtra' },
+            { city: 'New Delhi', state: 'Delhi' },
+            { city: 'North Delhi', state: 'Delhi' },
+            { city: 'South Delhi', state: 'Delhi' },
+            { city: 'Bangalore', state: 'Karnataka' },
+            { city: 'Mysore', state: 'Karnataka' },
+            { city: 'Hubli', state: 'Karnataka' }
+        ];
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            searchResults.innerHTML = '';
+            
+            if (searchTerm.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const matches = cityDatabase.filter(item => 
+                item.city.toLowerCase().includes(searchTerm) || 
+                item.state.toLowerCase().includes(searchTerm)
+            );
+
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `
+                        <span class="city-name">${match.city}</span>
+                        <span class="state-name">${match.state}</span>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => {
+                        stateSelect.value = match.state.toLowerCase();
+                        stateSelect.dispatchEvent(new Event('change'));
+                        setTimeout(() => {
+                            citySelect.value = match.city.toLowerCase();
+                            citySelect.dispatchEvent(new Event('change'));
+                        }, 100);
+
+                        searchInput.value = '';
+                        searchResults.style.display = 'none';
+                    });
+
+                    searchResults.appendChild(resultItem);
+                });
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchResults.contains(e.target) && e.target !== searchInput) {
+                searchResults.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

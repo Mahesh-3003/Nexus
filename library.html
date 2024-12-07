@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Libraries</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        :root {
+            --neon-blue: #00fff2;   
+            --neon-purple: #b537f2;
+            --dark-bg: #0a0a0f;
+            --neon-red: #ff4444;
+        }
+        body {
+            background: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+            perspective: 1000px;
+            position: relative;
+        }
+        .background-grid {
+        }
+        .library-container {
+            max-width: 1200px;
+            margin: 100px auto;
+            padding: 0 20px;
+        }
+
+        .library-card {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+            animation: cardFloat 6s ease-in-out infinite;
+            position: relative;
+        }
+
+        .library-card:hover {
+            transform: translateZ(20px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+            animation: glowPulse 2s infinite;
+        }
+
+        .library-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--neon-blue);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+            position: relative;
+        }
+
+        .library-name::before {
+            content: attr(data-text);
+            position: absolute;
+            left: -2px;
+            text-shadow: 2px 0 var(--neon-purple);
+            animation: glitch 1s infinite;
+            clip: rect(0, 900px, 0, 0);
+        }
+
+        .library-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .info-icon {
+            color: var(--neon-purple);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .info-item:hover .info-icon {
+            animation: iconSpin 1s linear;
+            color: var(--neon-blue);
+        }
+
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .time-slot {
+            position: relative;
+            padding: 0.8rem;
+            text-align: center;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .time-slot:not(.disabled):hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 255, 242, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .time-slot.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+        }
+
+        .time-slot.disabled:hover::before {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 1rem;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid var(--neon-red);
+            border-radius: 4px;
+            color: var(--neon-red);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            z-index: 10;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .time-slot.disabled:hover::after {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--neon-red);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -5px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .time-slot.available {
+            border-color: var(--neon-blue);
+        }
+
+        .time-slot.booked {
+            border-color: var(--neon-purple);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .book-btn {
+            font-family: 'Orbitron', sans-serif;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .book-btn:hover {
+            background: rgba(0, 255, 242, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.4);
+        }
+
+        .book-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 255, 242, 0.4),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .book-btn:hover::before {
+            left: 100%;
+        }
+        .library-stats {
+            display: flex;
+            gap: 2rem;
+            margin: 1rem 0;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 255, 242, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 255, 242, 0.1);
+            animation: statPulse 2s infinite;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        @keyframes cardFloat {
+            0%, 100% { transform: translateZ(20px) translateY(0); }
+            50% { transform: translateZ(40px) translateY(-10px); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 242, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 242, 0.4); }
+        }
+
+        @keyframes iconSpin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        @keyframes statPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .library-card::before,
+        .library-card::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-blue);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .library-card::before {
+            top: 10px;
+            left: 10px;
+            border-right: 0;
+            border-bottom: 0;
+        }
+
+        .library-card::after {
+            bottom: 10px;
+            right: 10px;
+            border-left: 0;
+            border-top: 0;
+        }
+
+        .library-card:hover::before,
+        .library-card:hover::after {
+            opacity: 1;
+            width: 30px;
+            height: 30px;
+        }
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                var(--neon-blue),
+                transparent
+            );
+            opacity: 0.5;
+            top: 0;
+            left: 0;
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        .library-name {
+            position: relative;
+        }
+
+        .library-name::before {
+            content: attr(data-text);
+            position: absolute;
+            left: -2px;
+            text-shadow: 2px 0 var(--neon-purple);
+            animation: glitch 1s infinite;
+            clip: rect(0, 900px, 0, 0);
+        }
+
+        @keyframes glitch {
+            0% { clip: rect(44px, 900px, 56px, 0); }
+            20% { clip: rect(12px, 900px, 65px, 0); }
+            40% { clip: rect(78px, 900px, 23px, 0); }
+            60% { clip: rect(34px, 900px, 78px, 0); }
+            80% { clip: rect(89px, 900px, 12px, 0); }
+            100% { clip: rect(67px, 900px, 34px, 0); }
+        }
+        .pricing-tiers {
+            margin: 3rem 0;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tier-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tier-card {
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tier-card.featured {
+            transform: scale(1.05);
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 30px rgba(181, 55, 242, 0.2);
+            z-index: 2;
+        }
+
+        .tier-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+        }
+
+        .tier-card.featured:hover {
+            transform: scale(1.08);
+        }
+
+        .tier-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--neon-purple);
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(181, 55, 242, 0.3);
+        }
+
+        .tier-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: var(--neon-blue);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .tier-price {
+            font-size: 3rem;
+            color: white;
+            margin: 1.5rem 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .tier-price span {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .feature {
+            margin: 1rem 0;
+            opacity: 0.9;
+            text-align: left;
+            padding-left: 1rem;
+        }
+
+        .feature.disabled {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .feature.highlight {
+            color: var(--neon-purple);
+            font-weight: bold;
+        }
+
+        .select-plan-btn {
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .select-plan-btn.featured {
+            background: var(--neon-purple);
+            border-color: var(--neon-purple);
+            color: white;
+        }
+
+        .select-plan-btn:hover {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.4);
+        }
+
+        .select-plan-btn.featured:hover {
+            background: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(181, 55, 242, 0.4);
+        }
+
+        /* Updated Time Selection Styles */
+        .time-selection-panel {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(10, 10, 15, 0.95);
+            border-radius: 15px;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 255, 242, 0.1);
+        }
+
+        .selection-box {
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(0, 255, 242, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .selection-box:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.2);
+        }
+
+        .selection-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .selection-header h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .cyber-icon {
+            font-size: 1.5rem;
+            color: var(--neon-purple);
+        }
+
+        /* Time Slots Styling */
+        .time-slots-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-blue) rgba(10, 10, 15, 0.8);
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .time-slot {
+            padding: 0.8rem;
+            text-align: center;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .time-slot:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 255, 242, 0.1);
+        }
+
+        .time-slot.selected {
+            background: rgba(0, 255, 242, 0.2);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        /* Duration Control Styling */
+        .duration-control {
+            text-align: center;
+        }
+
+        .duration-display {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        #durationValue {
+            font-size: 2.5rem;
+            color: var(--neon-blue);
+        }
+
+        .duration-unit {
+            font-size: 1rem;
+            color: var(--neon-purple);
+            margin-left: 0.5rem;
+        }
+
+        .duration-limits {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-family: 'Rajdhani', sans-serif;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Booking Summary Styling */
+        .booking-summary {
+            margin-top: 2rem;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid var(--neon-purple);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-header h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-purple);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .summary-content {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .summary-plan {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(181, 55, 242, 0.1);
+            border-radius: 10px;
+        }
+
+        .plan-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--neon-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-rate {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            color: var(--neon-purple);
+        }
+
+        .summary-details {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(0, 255, 242, 0.1);
+        }
+
+        .detail-label {
+            font-family: 'Rajdhani', sans-serif;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+        }
+        .custom-date-picker {
+            position: relative;
+            background: rgba(10, 10, 15, 0.95);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.1);
+        }
+
+        .selected-date {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            padding: 1.2rem;
+            border: 1px solid rgba(0, 255, 242, 0.3);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            background: rgba(10, 10, 15, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .selected-date::after {
+            content: '📅';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .selected-date:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .quick-dates {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .quick-date-btn {
+            padding: 0.8rem;
+            background: transparent;
+            border: 1px solid rgba(0, 255, 242, 0.3);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-date-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 255, 242, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .quick-date-btn:hover::before {
+            left: 100%;
+        }
+
+        .quick-date-btn:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 255, 242, 0.1);
+            color: var(--neon-blue);
+            transform: translateY(-2px);
+        }
+
+        .quick-date-btn.active {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.3);
+        }
+        .time-slot {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-slot.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+        }
+
+        .time-slot.disabled::after {
+            content: '⚠️';
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+        }
+        .time-slot[title] {
+            position: relative;
+        }
+
+        .time-slot[title]:hover::before {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .error-message {
+            color: #ff4444;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+            padding: 0.5rem;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .duration-box {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hours-display {
+            font-size: 2.5rem;
+            margin: 1.5rem 0;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.3);
+        }
+
+        .plan-limit {
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--neon-purple);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .cyber-slider {
+            --slider-width: 100%;
+            --slider-height: 6px;
+            --slider-thumb-size: 24px;
+            
+            width: var(--slider-width);
+            height: var(--slider-height);
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, 
+                var(--neon-blue) 0%, 
+                rgba(0, 255, 242, 0.3) 100%
+            );
+            border-radius: 3px;
+            outline: none;
+            margin: 2rem 0;
+        }
+
+        .cyber-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: var(--slider-thumb-size);
+            height: var(--slider-thumb-size);
+            background: var(--neon-blue);
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .cyber-slider::-webkit-slider-thumb:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 242, 0.8);
+            transform: scale(1.1);
+        }
+        .confirm-btn {
+            position: relative;
+            width: 100%;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            background: linear-gradient(45deg, 
+                var(--neon-purple) 0%, 
+                var(--neon-blue) 100%
+            );
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .confirm-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .confirm-btn:hover::before {
+            animation: shine 1.5s infinite;
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 242, 0.3);
+        }
+
+        @keyframes shine {
+            0% {
+                left: -50%;
+            }
+            100% {
+                left: 150%;
+            }
+        }
+
+        .error-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 1rem;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid var(--neon-red);
+            border-radius: 4px;
+            color: var(--neon-red);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .time-slot.disabled:hover .error-tooltip {
+            opacity: 1;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(0, 255, 242, 0.2);
+            border-radius: 8px;
+            color: var(--neon-blue);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) hue-rotate(180deg);
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        input[type="date"]:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 255, 242, 0.2);
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(181, 55, 242, 0.2);
+        }
+
+        .home-logo {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
+            text-decoration: none;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .home-logo:hover {
+            transform: scale(1.1);
+            text-shadow: 0 0 20px var(--neon-blue), 0 0 30px var(--neon-purple);
+        }
+
+        .home-logo::before {
+            content: attr(data-text);
+            position: absolute;
+            left: -2px;
+            text-shadow: 2px 0 var(--neon-purple);
+            animation: glitch 1s infinite;
+            clip: rect(0, 900px, 0, 0);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-logo" data-text="NEXUS">NEXUS</a>
+    <div class="background-grid"></div>
+    <div class="hologram"></div>
+
+    <div class="library-container">
+        <div class="library-card">
+            <div class="scanner-line"></div>
+            <h2 class="library-name" data-text="Cyber Hub Library - Kharghar">
+                Cyber Hub Library - Kharghar
+            </h2>
+            
+            <div class="library-stats">
+                <div class="stat">
+                    <div class="stat-value">150+</div>
+                    <div class="stat-label">Available Seats</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">10,000+</div>
+                    <div class="stat-label">Books</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Access</div>
+                </div>
+            </div>
+
+            <div class="library-info">
+                <div class="info-item">
+                    <span class="info-icon">📍</span>
+                    <span>Sector 7, Kharghar, Navi Mumbai</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📱</span>
+                    <span>High-Speed WiFi Available</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">💡</span>
+                    <span>Individual Study Pods</span>
+                </div>
+            </div>
+
+            <div class="pricing-tiers">
+                <h3 class="section-title">Choose Your Study Plan</h3>
+                <div class="tier-container">
+                    <div class="tier-card basic">
+                        <div class="tier-header">Quick Study</div>
+                        <div class="tier-price">₹70<span>/hour</span></div>
+                        <div class="tier-duration">1-3 hours</div>
+                        <div class="tier-features">
+                            <div class="feature">✦ Basic Study Space</div>
+                            <div class="feature">✦ WiFi Access</div>
+                            <div class="feature">✦ Water Dispenser</div>
+                            <div class="feature disabled">✗ Priority Seating</div>
+                            <div class="feature disabled">✗ Extended Hours</div>
+                        </div>
+                        <button class="select-plan-btn" data-plan="basic" data-rate="70">Select Plan</button>
+                    </div>
+
+                    <div class="tier-card premium featured">
+                        <div class="tier-badge">MOST POPULAR</div>
+                        <div class="tier-header">Power Session</div>
+                        <div class="tier-price">₹60<span>/hour</span></div>
+                        <div class="tier-duration">7+ hours</div>
+                        <div class="tier-features">
+                            <div class="feature">✦ Premium Study Pod</div>
+                            <div class="feature">✦ High-Speed WiFi</div>
+                            <div class="feature">✦ Complimentary Coffee</div>
+                            <div class="feature">✦ Priority Seating</div>
+                            <div class="feature">✦ Extended Hours Access</div>
+                            <div class="feature highlight">★ Save ₹10 per hour!</div>
+                        </div>
+                        <button class="select-plan-btn featured" data-plan="premium" data-rate="60">Choose Best Value</button>
+                    </div>
+
+                    <div class="tier-card standard">
+                        <div class="tier-header">Focus Zone</div>
+                        <div class="tier-price">₹65<span>/hour</span></div>
+                        <div class="tier-duration">4-6 hours</div>
+                        <div class="tier-features">
+                            <div class="feature">✦ Dedicated Desk</div>
+                            <div class="feature">✦ WiFi Access</div>
+                            <div class="feature">✦ Water Dispenser</div>
+                            <div class="feature">✦ Priority Seating</div>
+                            <div class="feature disabled">✗ Extended Hours</div>
+                            <div class="feature highlight">★ Save ₹5 per hour!</div>
+                        </div>
+                        <button class="select-plan-btn" data-plan="standard" data-rate="65">Select Plan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="time-selection-panel" style="display: none;">
+                <h3 class="section-title">Customize Your Session</h3>
+                <div class="time-selection-grid">
+                    <div class="selection-box date-picker-box">
+                        <div class="selection-header">
+                            <span class="cyber-icon">📅</span>
+                            <h4>Select Date</h4>
+                        </div>
+                        <div class="custom-date-picker">
+                            <div class="selected-date" id="selectedDateDisplay">Select a date</div>
+                            <input type="date" id="bookingDate" class="cyber-input" min="">
+                            <div class="quick-dates">
+                                <button class="quick-date-btn" data-days="0">Today</button>
+                                <button class="quick-date-btn" data-days="1">Tomorrow</button>
+                                <button class="quick-date-btn" data-days="2">Day After</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selection-box">
+                        <div class="selection-header">
+                            <span class="cyber-icon">⏰</span>
+                            <h4>Start Time</h4>
+                        </div>
+                        <div class="time-slots-container">
+                            <div class="time-slots" id="timeSlots">
+                                <!-- Time slots will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selection-box duration-box">
+                        <div class="selection-header">
+                            <span class="cyber-icon">⌛</span>
+                            <h4>Duration</h4>
+                        </div>
+                        <div class="duration-display">
+                            <div class="hours-display">
+                                <span id="durationValue">0</span>
+                                <span class="duration-unit">HOURS</span>
+                            </div>
+                            <div class="plan-limit" id="planLimitInfo"></div>
+                        </div>
+                        <input type="range" id="durationSlider" class="cyber-slider" min="1" max="16" value="1">
+                        <div class="duration-limits">
+                            <span id="minDuration">1h</span>
+                            <span id="maxDuration">16h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-summary">
+                    <div class="summary-header">
+                        <span class="cyber-icon">📋</span>
+                        <h3>Booking Summary</h3>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-plan">
+                            <div class="plan-name" id="selectedPlanName">-</div>
+                            <div class="plan-rate" id="selectedPlanRate">-</div>
+                        </div>
+                        <div class="summary-details">
+                            <div class="summary-row">
+                                <span class="detail-label">Date</span>
+                                <span class="detail-value" id="summaryDate">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="detail-label">Time</span>
+                                <span class="detail-value" id="summaryTime">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="detail-label">Duration</span>
+                                <span class="detail-value" id="summaryDuration">-</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span class="detail-label">Total Amount</span>
+                                <span class="detail-value" id="summaryTotal">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="confirmBooking" class="confirm-btn">
+                        <span class="btn-icon">✓</span>
+                        Confirm Booking
+                    </button>
+                </div>
+            </div>
+
+            <h3 style="font-family: 'Orbitron', sans-serif; color: var(--neon-purple); margin: 1rem 0;">
+                Available Time Slots
+            </h3>
+            
+            <div class="slot-grid">
+            </div>
+
+            <button class="book-btn">BOOK SLOT</button>
+        </div>
+    </div>
+    <script>
+        function checkLoginStatus() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                alert('Please login to continue');
+                localStorage.setItem('redirectAfterLogin', window.location.href);
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkLoginStatus()) return;
+
+            // DOM Elements
+            const timeSelectionPanel = document.querySelector('.time-selection-panel');
+            const planButtons = document.querySelectorAll('.select-plan-btn');
+            const quickDateBtns = document.querySelectorAll('.quick-date-btn');
+            const selectedDateDisplay = document.getElementById('selectedDateDisplay');
+            const bookingDate = document.getElementById('bookingDate');
+            const durationSlider = document.getElementById('durationSlider');
+            const durationValue = document.getElementById('durationValue');
+            const planLimitInfo = document.getElementById('planLimitInfo');
+            const timeSlots = document.getElementById('timeSlots');
+            const confirmBtn = document.getElementById('confirmBooking');
+            let selectedPlan = null;
+            let selectedTime = null;
+            const planConfigs = {
+                basic: {
+                    min: 1,
+                    max: 3,
+                    name: 'Quick Study',
+                    rate: 70,
+                    message: 'Quick Study: 1-3 hours available'
+                },
+                standard: {
+                    min: 4,
+                    max: 6,
+                    name: 'Focus Zone',
+                    rate: 65,
+                    message: 'Focus Zone: 4-6 hours available'
+                },
+                premium: {
+                    min: 7,
+                    max: 16,
+                    name: 'Power Session',
+                    rate: 60,
+                    message: 'Power Session: 7-16 hours available'
+                }
+            };
+            function initializeDatePicker() {
+                const today = new Date();
+                bookingDate.min = today.toISOString().split('T')[0];
+                bookingDate.value = today.toISOString().split('T')[0];
+                updateSelectedDateDisplay(today);
+                quickDateBtns[0].classList.add('active');
+            }
+            function updateSelectedDateDisplay(date) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                selectedDateDisplay.textContent = date.toLocaleDateString('en-US', options);
+            }
+
+            function handleQuickDateSelection(btn) {
+                const days = parseInt(btn.dataset.days);
+                const date = new Date();
+                date.setDate(date.getDate() + days);
+                
+                const formattedDate = date.toISOString().split('T')[0];
+                bookingDate.value = formattedDate;
+                updateSelectedDateDisplay(date);
+                
+                quickDateBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                validateAndUpdateSummary();
+            }
+            function generateTimeSlots() {
+                const timeSlots = document.getElementById('timeSlots');
+                timeSlots.innerHTML = '';
+                const selectedDate = new Date(document.getElementById('bookingDate').value);
+                const currentDate = new Date();
+                const isToday = selectedDate.toDateString() === currentDate.toDateString();
+                const currentHour = currentDate.getHours();
+                const duration = parseInt(durationSlider.value);
+
+                for (let hour = 7; hour <= 23; hour++) {
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    const formattedHour = hour.toString().padStart(2, '0');
+                    timeSlot.innerHTML = `${formattedHour}:00`;
+                    timeSlot.dataset.time = `${formattedHour}:00`;
+                    const endHour = hour + duration;
+                    const isValidDuration = endHour <= 23;
+                    const isPastHour = isToday && hour <= currentHour;
+
+                    if (isPastHour) {
+                        timeSlot.classList.add('disabled');
+                        timeSlot.title = 'This time has already passed';
+                    } else if (!isValidDuration) {
+                        timeSlot.classList.add('disabled');
+                        timeSlot.title = `Not available for ${duration}hr session - Library closes at 11 PM`;
+                    } else {
+                        timeSlot.addEventListener('click', () => handleTimeSlotSelection(timeSlot));
+                    }
+
+                    timeSlots.appendChild(timeSlot);
+                }
+            }
+
+            function handleTimeSlotSelection(slot) {
+                if (slot.classList.contains('disabled')) return;
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                slot.classList.add('selected');
+                selectedTime = slot.dataset.time;
+                
+                validateAndUpdateSummary();
+            }
+            durationSlider.addEventListener('input', () => {
+                durationValue.textContent = durationSlider.value;
+                validateAndUpdateSummary();
+            });
+            bookingDate.addEventListener('change', () => {
+                generateTimeSlots();
+                validateAndUpdateSummary();
+            });
+            function handlePlanSelection(btn) {
+                const plan = btn.dataset.plan;
+                const config = planConfigs[plan];
+                
+                selectedPlan = {
+                    name: config.name,
+                    rate: config.rate,
+                    plan: plan,
+                    config: config
+                };
+                durationSlider.min = config.min;
+                durationSlider.max = config.max;
+                durationSlider.value = config.min;
+                document.getElementById('minDuration').textContent = `${config.min}h`;
+                document.getElementById('maxDuration').textContent = `${config.max}h`;
+                durationValue.textContent = config.min;
+                planLimitInfo.textContent = config.message;
+                timeSelectionPanel.style.display = 'block';
+                timeSelectionPanel.scrollIntoView({ behavior: 'smooth' });
+                generateTimeSlots();
+                
+                validateAndUpdateSummary();
+            }
+            function validateAndUpdateSummary() {
+                if (!selectedPlan) return;
+
+                const date = bookingDate.value;
+                const duration = parseInt(durationSlider.value);
+                const selectedTimeSlot = document.querySelector('.time-slot.selected');
+                const time = selectedTimeSlot ? selectedTimeSlot.dataset.time : '-';
+                
+                const timeError = document.getElementById('timeError');
+                const durationError = document.getElementById('durationError');
+                timeError.classList.remove('show');
+                durationError.classList.remove('show');
+                let isValid = true;
+                if (time !== '-') {
+                    const [hours] = time.split(':');
+                    const endHour = parseInt(hours) + duration;
+                    
+                    if (endHour > 23) {
+                        isValid = false;
+                        timeError.textContent = `Session would exceed library closing time (11 PM)`;
+                        timeError.classList.add('show');
+                    }
+                }
+                if (duration < selectedPlan.config.min || duration > selectedPlan.config.max) {
+                    isValid = false;
+                    durationError.textContent = `${selectedPlan.name} allows ${selectedPlan.config.min}-${selectedPlan.config.max} hours`;
+                    durationError.classList.add('show');
+                }
+                document.getElementById('selectedPlanName').textContent = selectedPlan.name;
+                document.getElementById('selectedPlanRate').textContent = `₹${selectedPlan.rate}/hour`;
+                document.getElementById('summaryDate').textContent = date || '-';
+                document.getElementById('summaryTime').textContent = time;
+                document.getElementById('summaryDuration').textContent = `${duration} hours`;
+                document.getElementById('summaryTotal').textContent = `₹${duration * selectedPlan.rate}`;
+                confirmBtn.disabled = !isValid || time === '-' || !date;
+                confirmBtn.style.opacity = confirmBtn.disabled ? '0.5' : '1';
+            }
+            planButtons.forEach(btn => {
+                btn.addEventListener('click', () => handlePlanSelection(btn));
+            });
+
+            quickDateBtns.forEach(btn => {
+                btn.addEventListener('click', () => handleQuickDateSelection(btn));
+            });
+
+            bookingDate.addEventListener('change', (e) => {
+                const date = new Date(e.target.value);
+                updateSelectedDateDisplay(date);
+                generateTimeSlots();
+                validateAndUpdateSummary();
+            });
+
+            durationSlider.addEventListener('input', () => {
+                durationValue.textContent = durationSlider.value;
+                generateTimeSlots();
+                validateAndUpdateSummary();
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                if (!checkLoginStatus()) return;
+
+                const currentUser = localStorage.getItem('currentUser');
+                const booking = {
+                    id: Date.now(),
+                    username: currentUser,
+                    library: 'Cyber Hub Library - Kharghar',
+                    date: document.getElementById('summaryDate').textContent,
+                    time: document.getElementById('summaryTime').textContent,
+                    duration: document.getElementById('summaryDuration').textContent,
+                    plan: document.getElementById('selectedPlanName').textContent,
+                    amount: document.getElementById('summaryTotal').textContent,
+                    status: 'Pending',
+                    timestamp: new Date().toISOString(),
+                    adminApproved: false
+                };
+                const existingBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                existingBookings.push(booking);
+                localStorage.setItem('bookings', JSON.stringify(existingBookings));
+                const adminNotifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
+                adminNotifications.push({
+                    id: Date.now(),
+                    type: 'newBooking',
+                    booking: booking,
+                    read: false,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
+
+                alert('Booking request submitted successfully! Waiting for admin approval.');
+                window.location.href = 'index.html';
+            });
+            initializeDatePicker();
+            generateTimeSlots();
+            function validateTimeSlotForDuration(hour, duration) {
+                const closingHour = 23;
+                const endHour = parseInt(hour) + parseInt(duration);
+                return endHour <= closingHour;
+            }
+
+            function updateAvailableTimeSlots() {
+                const duration = parseInt(durationSlider.value);
+                const timeSlots = document.querySelectorAll('.time-slot');
+                
+                timeSlots.forEach(slot => {
+                    const hour = parseInt(slot.dataset.hour);
+                    const endHour = hour + duration;
+                    const isValidDuration = endHour <= 23;
+                    const isToday = bookingDate.value === new Date().toISOString().split('T')[0];
+                    const isPastHour = isToday && hour <= new Date().getHours();
+                    
+                    if (isPastHour) {
+                        slot.classList.add('disabled');
+                        slot.title = 'This time has already passed';
+                    } else if (!isValidDuration) {
+                        slot.classList.add('disabled');
+                        slot.title = `Not available for ${duration}hr session - Library closes at 11 PM`;
+                    } else {
+                        slot.classList.remove('disabled');
+                        slot.title = '';
+                    }
+                });
+                const selectedSlot = document.querySelector('.time-slot.selected');
+                if (selectedSlot && selectedSlot.classList.contains('disabled')) {
+                    selectedSlot.classList.remove('selected');
+                    selectedTime = null;
+                    validateAndUpdateSummary();
+                }
+            }
+            function updateBookingSummary() {
+                const selectedDate = document.getElementById('bookingDate').value;
+                const selectedTime = document.querySelector('.time-slot.selected')?.textContent || '-';
+                const duration = document.getElementById('durationValue').textContent;
+                const selectedPlan = document.querySelector('.select-plan-btn.selected')?.dataset.plan || '-';
+                const rate = parseInt(document.querySelector('.select-plan-btn.selected')?.dataset.rate || 0);
+
+                document.getElementById('summaryDate').textContent = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }) : '-';
+                document.getElementById('summaryTime').textContent = selectedTime;
+                document.getElementById('summaryDuration').textContent = `${duration} Hours`;
+                const totalAmount = rate * parseInt(duration);
+                document.getElementById('summaryTotal').textContent = totalAmount ? `₹${totalAmount}` : '-';
+                const planName = document.getElementById('selectedPlanName');
+                const planRate = document.getElementById('selectedPlanRate');
+                
+                if (selectedPlan !== '-') {
+                    planName.textContent = planConfigs[selectedPlan].name;
+                    planRate.textContent = `₹${rate}/hour`;
+                } else {
+                    planName.textContent = '-';
+                    planRate.textContent = '-';
+                }
+            }
+            document.getElementById('bookingDate').addEventListener('change', updateBookingSummary);
+            document.getElementById('durationSlider').addEventListener('input', function() {
+                document.getElementById('durationValue').textContent = this.value;
+                updateBookingSummary();
+            });
+            function selectTimeSlot(slot) {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                slot.classList.add('selected');
+                updateBookingSummary();
+            }
+            document.querySelectorAll('.select-plan-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.select-plan-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const plan = this.dataset.plan;
+                    const { min, max } = planConfigs[plan];
+                    const durationSlider = document.getElementById('durationSlider');
+                    durationSlider.min = min;
+                    durationSlider.max = max;
+                    durationSlider.value = min;
+                    document.getElementById('durationValue').textContent = min;
+                    document.getElementById('minDuration').textContent = `${min}h`;
+                    document.getElementById('maxDuration').textContent = `${max}h`;
+                    document.getElementById('planLimitInfo').textContent = planConfigs[plan].message;
+                    
+                    updateBookingSummary();
+                    document.querySelector('.time-selection-panel').style.display = 'block';
+                });
+            });
+            function generateTimeSlots() {
+                const timeSlots = document.getElementById('timeSlots');
+                timeSlots.innerHTML = '';
+                
+                for (let hour = 7; hour <= 23; hour++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'time-slot';
+                    const formattedHour = hour.toString().padStart(2, '0');
+                    slot.textContent = `${formattedHour}:00`;
+                    
+                    slot.addEventListener('click', function() {
+                        if (!this.classList.contains('disabled')) {
+                            selectTimeSlot(this);
+                        }
+                    });
+                    
+                    timeSlots.appendChild(slot);
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                generateTimeSlots();
+                initializeDatePicker();
+                updateBookingSummary();
+            });
+            document.getElementById('confirmBooking').addEventListener('click', function() {
+                if (!checkLoginStatus()) return;
+
+                const currentUser = localStorage.getItem('currentUser');
+                const booking = {
+                    id: Date.now(),
+                    username: currentUser,
+                    library: 'Cyber Hub Library - Kharghar',
+                    date: document.getElementById('summaryDate').textContent,
+                    time: document.getElementById('summaryTime').textContent,
+                    duration: document.getElementById('summaryDuration').textContent,
+                    plan: document.getElementById('selectedPlanName').textContent,
+                    amount: document.getElementById('summaryTotal').textContent,
+                    status: 'Pending',
+                    timestamp: new Date().toISOString(),
+                    adminApproved: false
+                };
+                const existingBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                existingBookings.push(booking);
+                localStorage.setItem('bookings', JSON.stringify(existingBookings));
+                const adminNotifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
+                adminNotifications.push({
+                    id: Date.now(),
+                    type: 'newBooking',
+                    booking: booking,
+                    read: false,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
+
+                alert('Booking request submitted successfully! Waiting for admin approval.');
+                window.location.href = 'index.html';
+            });
+            planButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!checkLoginStatus()) return;
+                    handlePlanSelection(btn);
+                });
+            });
+            quickDateBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!checkLoginStatus()) return;
+                    handleQuickDateSelection(btn);
+                });
+            });
+            function checkSessionExpiry() {
+                const loginTimestamp = localStorage.getItem('loginTimestamp');
+                if (loginTimestamp) {
+                    const currentTime = new Date().getTime();
+                    const sessionDuration = 24 * 60 * 60 * 1000;
+                    
+                    if (currentTime - parseInt(loginTimestamp) > sessionDuration) {
+                        // Session expired
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('loginTimestamp');
+                        alert('Your session has expired. Please login again.');
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // Add periodic session check
+            setInterval(checkSessionExpiry, 5 * 60 * 1000);
+        });
+    </script>
+</body>
+</html> 
